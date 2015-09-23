@@ -816,6 +816,9 @@ $ %(progname)s set robot_model --version-new robot_model-1.7.1
         parser.add_option("-u", "--update", dest="do_update", default=False,
                           help="update repository after set",
                           action="store_true")
+        parser.add_option("--unmanaged", dest="unmanaged", default=False,
+                          help="Set unmanaged elements",
+                          action="store_true")
         # -t option required here for help but used one layer above, see cli_common
         parser.add_option(
             "-t", "--target-workspace", dest="workspace", default=None,
@@ -839,6 +842,20 @@ $ %(progname)s set robot_model --version-new robot_model-1.7.1
             raise MultiProjectException(
                 "Config path does not match %s %s " % (config.get_base_path(),
                                                        target_path))
+
+        if options.unmanaged:
+            outputs2 = multiproject_cmd.cmd_find_unmanaged_repos(config)
+            table2 = get_info_table(config.get_base_path(),
+                                   outputs2,
+                                   data_only=True,
+                                   unmanaged=True)
+            for line in table2.splitlines():
+                if options.confirm:
+                    line += " -y"
+                if options.do_update:
+                    line += " -u"
+                self.cmd_set(target_path, line.split())
+            return 0
 
         scmtype = None
         count_scms = 0
